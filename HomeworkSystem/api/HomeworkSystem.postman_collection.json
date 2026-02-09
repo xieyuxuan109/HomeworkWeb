@@ -1,0 +1,1139 @@
+{
+  "info": {
+    "_postman_id": "221d79ba-f3eb-4e9e-b1a7-9ef389dad1a5",
+    "name": "HomeworkSystem",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "51179495"
+  },
+  "item": [
+    {
+      "name": "RegisterStudent",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\":{{STUDENT}},\r\n    \"password\":{{PASSWORD_STUDENT}},\r\n    \"nickname\":{{STUDENT}},\r\n    \"role\": \"student\",\r\n    \"department\":\"backend\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/user/register",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "user",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "RegisterTeacher",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\":{{TEACHER}},\r\n    \"password\":{{PASSWORD_TEACHER}},\r\n    \"nickname\":{{TEACHER}},\r\n    \"role\": \"admin\",\r\n    \"department\":\"backend\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/user/register",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "user",
+            "register"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "LoginTeacher",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})\r",
+              "\r",
+              "pm.test(\"Response structure\",function(){\r",
+              "    pm.expect(pm.response.text()).to.include(\"access_token\")\r",
+              "    pm.expect(pm.response.text()).to.include(\"refresh_token\")\r",
+              "})\r",
+              "\r",
+              "var jsonData=pm.response.json();\r",
+              "console.log(jsonData)\r",
+              "pm.environment.set(\"ACCESS_TOKEN\",jsonData.data.access_token)\r",
+              "pm.environment.set(\"REFRESH_TOKEN\",jsonData.data.refresh_token)"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\":{{TEACHER}},\r\n    \"password\":{{PASSWORD_TEACHER}}\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/user/login",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "user",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetProfile",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{ACCESS_TOKEN}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://{{HOST}}:8080/user/profile",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "user",
+            "profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "PostHomework",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})\r",
+              "\r",
+              "pm.test(\"Response structure\",function(){\r",
+              "    pm.expect(pm.response.text()).to.include(\"id\")\r",
+              "})\r",
+              "\r",
+              "var jsonData=pm.response.json();\r",
+              "console.log(jsonData)\r",
+              "pm.environment.set(\"HOMEWORK_ID\",jsonData.data.id)\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{ACCESS_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"title\":\"第一周作业内容\",\r\n    \"description\": \"本周作业内容学习http请求\",\r\n    \"department\":\"backend\",\r\n    \"deadline\": \"2026-01-31T23:59:59Z\",\r\n    \"allow_late\":true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/homework",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "homework"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "UpdateHomework",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})\r",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{ACCESS_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"title\":\"修改过后的第一周作业\",\r\n    \"description\": \"我正在学习API请求\",\r\n    \"allow_late\":false\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/homework/{{HOMEWORK_ID}}",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "homework",
+            "{{HOMEWORK_ID}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "LoginStudent",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})\r",
+              "\r",
+              "pm.test(\"Response structure\",function(){\r",
+              "    pm.expect(pm.response.text()).to.include(\"access_token\")\r",
+              "    pm.expect(pm.response.text()).to.include(\"refresh_token\")\r",
+              "})\r",
+              "\r",
+              "var jsonData=pm.response.json();\r",
+              "console.log(jsonData)\r",
+              "pm.environment.set(\"ACCESS_TOKEN\",jsonData.data.access_token)\r",
+              "pm.environment.set(\"REFRESH_TOKEN\",jsonData.data.refresh_token)"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\":{{STUDENT}},\r\n    \"password\":{{PASSWORD_STUDENT}}\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/user/login",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "user",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Refresh",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{REFRESH_TOKEN}}",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"refresh_token\":\"{{REFRESH_TOKEN}}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/user/refresh",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "user",
+            "refresh"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetHomeworks",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{ACCESS_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://{{HOST}}:8080/homework?department=Backend&page=1&page_size=10",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "homework"
+          ],
+          "query": [
+            {
+              "key": "department",
+              "value": "Backend"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "page_size",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetDetailHomework",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://{{HOST}}:8080/homework/{{HOMEWORK_ID}}",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "homework",
+            "{{HOMEWORK_ID}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "SubmitHomework",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})\r",
+              "pm.test(\"Response structure\",function(){\r",
+              "    pm.expect(pm.response.text()).to.include(\"id\")\r",
+              "})\r",
+              "\r",
+              "var jsonData=pm.response.json();\r",
+              "console.log(jsonData)\r",
+              "pm.environment.set(\"SUBMISSION_ID\",jsonData.data.id)"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{ACCESS_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"homework_id\":{{HOMEWORK_ID}},\r\n    \"content\": \"我正在学习API请求\",\r\n    \"file_url\":\"https//baidu.com\"\r\n}"
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/submission",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "submission"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetMySubmissions",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "{{ACCESS_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://{{HOST}}:8080/submission/my",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "submission",
+            "my"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "LoginTeacher",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})\r",
+              "\r",
+              "pm.test(\"Response structure\",function(){\r",
+              "    pm.expect(pm.response.text()).to.include(\"access_token\")\r",
+              "    pm.expect(pm.response.text()).to.include(\"refresh_token\")\r",
+              "})\r",
+              "\r",
+              "var jsonData=pm.response.json();\r",
+              "console.log(jsonData)\r",
+              "pm.environment.set(\"ACCESS_TOKEN\",jsonData.data.access_token)\r",
+              "pm.environment.set(\"REFRESH_TOKEN\",jsonData.data.refresh_token)"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\":{{TEACHER}},\r\n    \"password\":{{PASSWORD_TEACHER}}\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/user/login",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "user",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GetSubssions",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{ACCESS_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://{{HOST}}:8080/submission/homework/{{HOMEWORK_ID}}",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "submission",
+            "homework",
+            "{{HOMEWORK_ID}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CorrectHomework",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{ACCESS_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"score\":{{SCORE}},\r\n    \"comment\":\"继续加油\",\r\n    \"is_excellent\":false\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/submission/{{SUBMISSION_ID}}/review",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "submission",
+            "{{SUBMISSION_ID}}",
+            "review"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "aiReview",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{ACCESS_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"homework_id\":{{HOMEWORK_ID}},\r\n    \"submission_id\":{{SUBMISSION_ID}}\r\n}"
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/submission/{{SUBMISSION_ID}}/aiReview",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "submission",
+            "{{SUBMISSION_ID}}",
+            "aiReview"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "MarkExcellent",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{ACCESS_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"is_excellent\":true\r\n}"
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/submission/{{SUBMISSION_ID}}/excellent",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "submission",
+            "{{SUBMISSION_ID}}",
+            "excellent"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Getexcellents",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{ACCESS_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://{{HOST}}:8080/submission/excellent?department=backend&page=1&page_size=10",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "submission",
+            "excellent"
+          ],
+          "query": [
+            {
+              "key": "department",
+              "value": "backend"
+            },
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "page_size",
+              "value": "10"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DeleteHomework",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{ACCESS_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://{{HOST}}:8080/homework/{{HOMEWORK_ID}}",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "homework",
+            "{{HOMEWORK_ID}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DeleteTeacherAccount",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{ACCESS_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"password\":{{PASSWORD_TEACHER}}\r\n}"
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/user/account",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "user",
+            "account"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "LoginStudent",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})\r",
+              "\r",
+              "pm.test(\"Response structure\",function(){\r",
+              "    pm.expect(pm.response.text()).to.include(\"access_token\")\r",
+              "    pm.expect(pm.response.text()).to.include(\"refresh_token\")\r",
+              "})\r",
+              "\r",
+              "var jsonData=pm.response.json();\r",
+              "console.log(jsonData)\r",
+              "pm.environment.set(\"ACCESS_TOKEN\",jsonData.data.access_token)\r",
+              "pm.environment.set(\"REFRESH_TOKEN\",jsonData.data.refresh_token)"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"username\":{{STUDENT}},\r\n    \"password\":{{PASSWORD_STUDENT}}\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/user/login",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "user",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DeleteStudentAccount",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\",function(){\r",
+              "    pm.response.to.have.status(200);\r",
+              "    console.log()\r",
+              "})"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{ACCESS_TOKEN}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"password\":{{PASSWORD_STUDENT}}\r\n}"
+        },
+        "url": {
+          "raw": "http://{{HOST}}:8080/user/account",
+          "protocol": "http",
+          "host": [
+            "{{HOST}}"
+          ],
+          "port": "8080",
+          "path": [
+            "user",
+            "account"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
