@@ -23,9 +23,9 @@ type User struct {
 
 // 用户注册请求
 type UserRegisterRequest struct {
-	Username   string `json:"username" binding:"required,min=3,max=50"`
-	Password   string `json:"password" binding:"required,min=6,max=100"`
-	Nickname   string `json:"nickname" binding:"required,min=2,max=50"`
+	Username   string `json:"username" binding:"required,min=1,max=50"`
+	Password   string `json:"password" binding:"required,min=1,max=100"`
+	Nickname   string `json:"nickname" binding:"required,min=1,max=50"`
 	Department string `json:"department" binding:"required,oneof=backend frontend sre product design android ios"`
 	Role       string `json:"role"`
 }

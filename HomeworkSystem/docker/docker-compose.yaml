@@ -1,6 +1,16 @@
-#version: '3.8'
-## 添加 volumes 定义
 services:
+  # Nginx 服务 - 提供前端页面和反向代理
+  nginx:
+    image: 192.168.1.221:81/xieyuxuan/nginxvue:v1.0.0
+    container_name: nginxvue
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"  # 如果需要 HTTPS
+    environment:
+      - TZ=Asia/Shanghai
+    depends_on:
+      - go-app
   mysql:
     image: mysql:8.0
     container_name: homework-mysql
@@ -22,7 +32,7 @@ services:
       retries: 10
     #Go 应用服务
   go-app:
-    image: xieyuxuan/homeworksystem:v1.0.0
+    image: 192.168.1.221:81/xieyuxuan/homeworksystem:v2.0.0
     container_name: homework-go-app
     restart: always
     ports:

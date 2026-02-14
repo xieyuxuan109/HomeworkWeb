@@ -3,7 +3,7 @@ package configs
 import (
 	"fmt"
 	"os"
-"log"
+
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
@@ -28,19 +28,24 @@ func Load() *Config {
 		DB_NAME:     os.Getenv("DB_NAME"),
 	}
 	if cfg.DB_HOST == "" {
-		log.Fatal("缺少环境变量 DB_HOST")
+		cfg.DB_HOST = "192.168.1.109"
+		// log.Fatal("缺少环境变量 DB_HOST")
 	}
 	if cfg.DB_PORT == "" {
-		log.Fatal("缺少环境变量 DB_PORT")
+		cfg.DB_PORT = "3306"
+		// log.Fatal("缺少环境变量 DB_PORT")
 	}
 	if cfg.DB_USER == "" {
-		log.Println("缺少环境变量 DB_USER")
+		cfg.DB_USER = "user"
+		// log.Println("缺少环境变量 DB_USER")
 	}
 	if cfg.DB_PASSWORD == "" {
-		log.Println("缺少环境变量 DB_PASSWORD")
+		cfg.DB_PASSWORD = "user"
+		// log.Println("缺少环境变量 DB_PASSWORD")
 	}
 	if cfg.DB_NAME == "" {
-		log.Println("缺少环境变量 DB_NAME")
+		cfg.DB_NAME = "homework"
+		// log.Println("缺少环境变量 DB_NAME")
 	}
 	return cfg
 }
