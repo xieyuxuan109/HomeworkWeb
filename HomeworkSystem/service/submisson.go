@@ -3,43 +3,20 @@ package service
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/xieyuxuan109/homeworksystem/configs"
 	"github.com/xieyuxuan109/homeworksystem/model"
-	"gorm.io/gorm"
 )
 
 var Lock sync.Mutex
 
-var submissionSortColumns = map[string]string{
-	"id":         "id",
-	"created_at": "created_at",
-	"updated_at": "updated_at",
-	"score":      "score",
-}
-
-func normalizeSortField(sortName string) string {
-	if column, ok := submissionSortColumns[sortName]; ok {
-		return column
-	}
-	return "id"
-}
-
-func normalizeSortOrder(sort string) string {
-	if strings.EqualFold(sort, "asc") {
-		return "ASC"
-	}
-	return "DESC"
-}
-
 func SubmitHomework(req model.SubmissionRequest, Department string, ID uint) (res *model.SubmissionResponse, err error) {
 	var homework model.Homework
 	var submission model.Submission
-	var existedSubmission model.Submission
+	var submissionExist model.Submission
 	result := configs.DB.First(&homework, req.HomeworkID)
 	if result.Error != nil {
 		return nil, result.Error
@@ -65,39 +42,19 @@ func SubmitHomework(req model.SubmissionRequest, Department string, ID uint) (re
 	} else {
 		return nil, errors.New("该作业不是所在部门的作业")
 	}
-	result = configs.DB.Where("homework_id=? AND student_id=?", req.HomeworkID, ID).First(&existedSubmission)
-	if result.Error == nil {
-		now := time.Now()
-		existedSubmission.Content = submission.Content
-		existedSubmission.FileURL = submission.FileURL
-		existedSubmission.IsLate = submission.IsLate
-		existedSubmission.SubmissionCount++
-		existedSubmission.UpdatedAt = now
-		if updateErr := configs.DB.Save(&existedSubmission).Error; updateErr != nil {
-			return nil, updateErr
-		}
-		res = &model.SubmissionResponse{
-			ID:          existedSubmission.ID,
-			HomeworkID:  existedSubmission.HomeworkID,
-			IsLate:      existedSubmission.IsLate,
-			SubmittedAt: existedSubmission.UpdatedAt,
-		}
-		return res, nil
-	}
-	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, result.Error
-	}
-
-	submission.SubmissionCount = 1
 	result = configs.DB.Create(&submission)
 	if result.Error != nil {
 		return nil, result.Error
 	}
+	result = configs.DB.Where("homework_id=? AND student_id=?", req.HomeworkID, ID).First(&submissionExist)
+	if result.Error != nil {
+		return nil, result.Error
+	}
 	res = &model.SubmissionResponse{
-		ID:          submission.ID,
-		HomeworkID:  submission.HomeworkID,
-		IsLate:      submission.IsLate,
-		SubmittedAt: submission.UpdatedAt,
+		ID:          submissionExist.ID,
+		HomeworkID:  submissionExist.HomeworkID,
+		IsLate:      submissionExist.IsLate,
+		SubmittedAt: submissionExist.UpdatedAt,
 	}
 	return res, nil
 }
@@ -264,9 +221,7 @@ func GetSubmissions(tag string, submission string, sort string, sortName string,
 	query.Model(&model.Submission{}).Count(&total)
 
 	// 4. 执行查询
-	safeSortName := normalizeSortField(sortName)
-	safeSortOrder := normalizeSortOrder(sort)
-	err := query.Order(fmt.Sprintf("submissions.%s %s", safeSortName, safeSortOrder)).
+	err := query.Order(fmt.Sprintf("submissions.%s %s", sortName, sort)).
 		Offset(offset).
 		Limit(pageSize).
 		Find(&submissions).Error
