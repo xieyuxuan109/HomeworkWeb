@@ -56,6 +56,10 @@ func SubmitHomeworkList(c *gin.Context) {
 		return
 	}
 	res, total, err := service.SubmitHomeworkList(id.(uint), pageSize, offset)
+	if err != nil {
+		pkg.BadResponse(c, "获取失败", err)
+		return
+	}
 	responese := gin.H{
 		"list":      res,
 		"total":     total,
@@ -67,13 +71,17 @@ func SubmitHomeworkList(c *gin.Context) {
 
 func MarkExcellent(c *gin.Context) {
 	id := c.Param("id")
-	UserID, _ := strconv.Atoi(id)
+	userID, err := strconv.Atoi(id)
+	if err != nil || userID <= 0 {
+		pkg.BadResponse(c, "参数错误", nil)
+		return
+	}
 	var req model.Excellent
 	if err := c.ShouldBindJSON(&req); err != nil {
 		pkg.BadResponse(c, "参数错误", err)
 		return
 	}
-	res, err := service.MarkExcellent(req, uint(UserID))
+	res, err := service.MarkExcellent(req, uint(userID))
 	if err != nil {
 		pkg.BadResponse(c, "标记失败", err)
 		return
@@ -83,13 +91,17 @@ func MarkExcellent(c *gin.Context) {
 
 func CorrectHomework(c *gin.Context) {
 	id := c.Param("id")
-	UserID, _ := strconv.Atoi(id)
+	userID, err := strconv.Atoi(id)
+	if err != nil || userID <= 0 {
+		pkg.BadResponse(c, "参数错误", nil)
+		return
+	}
 	var req model.CorrectHomework
 	if err := c.ShouldBindJSON(&req); err != nil {
 		pkg.BadResponse(c, "参数错误", err)
 		return
 	}
-	res, err := service.CorrectHomework(req, uint(UserID))
+	res, err := service.CorrectHomework(req, uint(userID))
 	if err != nil {
 		pkg.BadResponse(c, "标记失败", err)
 		return
