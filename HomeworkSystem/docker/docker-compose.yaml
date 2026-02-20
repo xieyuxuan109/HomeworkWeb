@@ -48,4 +48,4 @@ services:
       DB_PASSWORD: ${MYSQL_PASSWORD:-user}
 
       #应用配置
-      JWT_SECRET: ${JWT_SECRET:-xieasdfasdfasdfasdfsadfasfdsadfsaf}
+      JWT_SECRET: ${JWT_SECRET:-xieasdfasdfasdfasdfsadfasfdsadfsafdsaf}
