@@ -70,8 +70,8 @@
                   </div>
 
                   <div class="info-row">
-                    <span class="label">部门：</span>
-                    <span class="value">{{ submission.homework?.department_label }}</span>
+                    <span class="label">学科：</span>
+                    <span class="value">{{ submission.homework?.subject_label }}</span>
                   </div>
 
                   <div class="info-row">

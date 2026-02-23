@@ -25,7 +25,7 @@ func buildPrompt(hw *model.Homework, sb *model.Submission) string {
 2. 语气要亲切，像老师对学生说话。
 3. 字数控制在 100 字以内。
 4. 如果分数在 90 以上，给予特别表扬；如果低于 60，要鼓励加油。`,
-		hw.Department, hw.Title, hw.Description, sb.Content)
+		hw.Subject, hw.Title, hw.Description, sb.Content)
 }
 
 func AIcomment(c *gin.Context) {

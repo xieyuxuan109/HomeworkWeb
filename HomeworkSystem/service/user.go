@@ -15,10 +15,22 @@ func Register(req model.UserRegisterRequest) (*model.UserResponse, error) {
 		return nil, errors.New("用户已存在")
 	}
 	user := model.User{
-		Username:   req.Username,
-		Nickname:   req.Nickname,
-		Department: req.Department,
-		Role:       req.Role,
+		Username: req.Username,
+		Nickname: req.Nickname,
+		Subject:  req.Subject,
+		Role:     req.Role,
+	}
+	if user.Subject == "" {
+		user.Subject = req.Department
+	}
+	if model.GetSubjectLabel(user.Subject) == "" {
+		return nil, errors.New("学科不合法")
+	}
+	if user.Role == "admin" {
+		user.Role = "teacher"
+	}
+	if user.Role != "student" && user.Role != "teacher" {
+		return nil, errors.New("角色仅支持 student 或 teacher")
 	}
 	pkg.SetPassword(&user, req.Password)
 	err := dao.Add(user)
@@ -53,8 +65,8 @@ func RefreshTokens(req model.RefreshRequest) (map[string]string, error) {
 	userID := claims.UserID
 	username := claims.Username
 	role := claims.Role
-	department := claims.Department
-	tokens, err := pkg.GenerateTokens(userID, username, role, department)
+	subject := claims.Subject
+	tokens, err := pkg.GenerateTokens(userID, username, role, subject)
 	if err != nil {
 		return nil, err
 	}
@@ -74,4 +86,22 @@ func DeleteAccount(req model.UserDeleteRequest, username string) error {
 		return err
 	}
 	return nil
+}
+
+func AssignStudent(teacherID uint, req model.AssignStudentRequest) (*model.TeacherStudent, error) {
+	student, err := dao.ExistsUserByID(req.StudentID)
+	if err != nil {
+		return nil, errors.New("学生不存在")
+	}
+	if student.Role != "student" {
+		return nil, errors.New("只能绑定学生")
+	}
+	if dao.IsTeacherStudentRelated(teacherID, req.StudentID) {
+		return nil, errors.New("该学生已绑定")
+	}
+	relation := &model.TeacherStudent{TeacherID: teacherID, StudentID: req.StudentID}
+	if err := configs.DB.Create(relation).Error; err != nil {
+		return nil, err
+	}
+	return relation, nil
 }

@@ -20,12 +20,12 @@ func SubmitHomework(c *gin.Context) {
 		pkg.BadResponse(c, "请先登录", nil)
 		return
 	}
-	department, exists := c.Get("department")
+	subject, exists := c.Get("subject")
 	if !exists {
 		pkg.BadResponse(c, "请先登录", nil)
 		return
 	}
-	res, err := service.SubmitHomework(req, department.(string), id.(uint))
+	res, err := service.SubmitHomework(req, subject.(string), id.(uint))
 	if err != nil {
 		pkg.BadResponse(c, "提交失败", err)
 		return
@@ -55,7 +55,15 @@ func SubmitHomeworkList(c *gin.Context) {
 		pkg.BadResponse(c, "请先登录", nil)
 		return
 	}
-	res, total, err := service.SubmitHomeworkList(id.(uint), pageSize, offset)
+	homeworkIDStr := c.Query("homework_id")
+	homeworkID := uint(0)
+	if homeworkIDStr != "" {
+		parsed, parseErr := strconv.Atoi(homeworkIDStr)
+		if parseErr == nil && parsed > 0 {
+			homeworkID = uint(parsed)
+		}
+	}
+	res, total, err := service.SubmitHomeworkList(id.(uint), pageSize, offset, homeworkID)
 	responese := gin.H{
 		"list":      res,
 		"total":     total,
@@ -73,7 +81,8 @@ func MarkExcellent(c *gin.Context) {
 		pkg.BadResponse(c, "参数错误", err)
 		return
 	}
-	res, err := service.MarkExcellent(req, uint(UserID))
+	teacherID, _ := c.Get("user_id")
+	res, err := service.MarkExcellent(req, uint(UserID), teacherID.(uint))
 	if err != nil {
 		pkg.BadResponse(c, "标记失败", err)
 		return
@@ -89,7 +98,8 @@ func CorrectHomework(c *gin.Context) {
 		pkg.BadResponse(c, "参数错误", err)
 		return
 	}
-	res, err := service.CorrectHomework(req, uint(UserID))
+	teacherID, _ := c.Get("user_id")
+	res, err := service.CorrectHomework(req, uint(UserID), teacherID.(uint))
 	if err != nil {
 		pkg.BadResponse(c, "标记失败", err)
 		return
@@ -97,13 +107,13 @@ func CorrectHomework(c *gin.Context) {
 	pkg.GoodResponse(c, "标记成功", res)
 }
 func ExcellentHomeworks(c *gin.Context) {
-	department, _ := c.Get("department")
+	subject, _ := c.Get("subject")
 	pageStr := c.DefaultQuery("page", "1")
 	pageSizeStr := c.DefaultQuery("page_size", "10")
 	page, _ := strconv.Atoi(pageStr)
 	pageSize, _ := strconv.Atoi(pageSizeStr)
 	offset := pageSize * (page - 1)
-	res, err := service.ExcellentHomeworks(department.(string), offset, page, pageSize)
+	res, err := service.ExcellentHomeworks(subject.(string), offset, page, pageSize)
 	if err != nil {
 		pkg.BadResponse(c, "返回失败", err)
 		return
@@ -116,7 +126,9 @@ func GetSubmissions(c *gin.Context) {
 	tag := c.DefaultQuery("tag", "")
 	sortName := c.DefaultQuery("sortName", "id")
 	sort := c.DefaultQuery("sort", "DESC")
-	department, _ := c.Get("department")
+	subject, _ := c.Get("subject")
+	teacherID, _ := c.Get("user_id")
+	role, _ := c.Get("role")
 	pageStr := c.DefaultQuery("page", "1")
 	pageSizeStr := c.DefaultQuery("page_size", "10")
 
@@ -134,7 +146,7 @@ func GetSubmissions(c *gin.Context) {
 		pageSize = 100
 	}
 	offset := (page - 1) * pageSize
-	results, err := service.GetSubmissions(tag, submissions, sort, sortName, department.(string), offset, page, pageSize)
+	results, err := service.GetSubmissions(tag, submissions, sort, sortName, subject.(string), teacherID.(uint), role.(string), offset, page, pageSize)
 	if err != nil {
 		pkg.BadResponse(c, "获取失败", err)
 		return

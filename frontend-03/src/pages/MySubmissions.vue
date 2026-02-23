@@ -55,7 +55,7 @@
                 <div class="card-header">
                   <h3 class="title">{{ submission.homework?.title }}</h3>
                   <div class="tags">
-                    <el-tag type="info">{{ submission.homework?.department_label }}</el-tag>
+                    <el-tag type="info">{{ submission.homework?.subject_label }}</el-tag>
                     <el-tag
                       v-if="submission.score !== null"
                       type="success"

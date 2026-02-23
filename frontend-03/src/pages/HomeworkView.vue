@@ -10,10 +10,10 @@
             <el-form-item label="作业描述" :label-width="formLabelWidth">
                 <el-input v-model="formData.description" autocomplete="off" />
             </el-form-item>
-            <el-form-item label="部门" :label-width="formLabelWidth">
-                <el-select v-model="formData.department" placeholder="Please select a zone">
-                    <el-option label="后端" value="backend" />
-                    <el-option label="前端" value="frontend" />
+            <el-form-item label="学科" :label-width="formLabelWidth">
+                <el-select v-model="formData.subject" placeholder="Please select a zone">
+                    <el-option label="语文" value="chinese" />
+                    <el-option label="数学" value="math" />
                 </el-select>
             </el-form-item>
         </el-form>

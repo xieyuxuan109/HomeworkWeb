@@ -13,8 +13,9 @@ export interface UserInfo {
   username: string
   nickname: string
   email?: string
-  department: string
-  role: 'student' | 'admin'
+  subject: string
+  subject_label?: string
+  role: 'student' | 'teacher'
   created_at?: string
   updated_at?: string
 }
@@ -24,8 +25,10 @@ export interface Homework {
   id: number
   title: string
   description: string
-  department: string
-  department_label: string
+  subject: string
+  subject_label: string
+  department?: string
+  department_label?: string
   deadline: string
   allow_late: boolean
   attachment_url?: string

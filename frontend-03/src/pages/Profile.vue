@@ -48,13 +48,13 @@
                   <el-input :model-value="userStore.user?.nickname" disabled />
                 </el-form-item>
 
-                <el-form-item label="部门">
-                  <el-input :model-value="userStore.user?.department_label" disabled />
+                <el-form-item label="学科">
+                  <el-input :model-value="userStore.user?.subject_label" disabled />
                 </el-form-item>
 
                 <el-form-item label="角色">
-                  <el-tag :type="userStore.user?.role === 'admin' ? 'warning' : 'info'">
-                    {{ userStore.user?.role === 'admin' ? '教师' : '学生' }}
+                  <el-tag :type="userStore.user?.role === 'teacher' ? 'warning' : 'info'">
+                    {{ userStore.user?.role === 'teacher' ? '教师' : '学生' }}
                   </el-tag>
                 </el-form-item>
 

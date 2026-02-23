@@ -1,0 +1,68 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: homework-mysql
+    restart: always
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-ChangeMeRootPwd123!}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-homeworksystem}
+      MYSQL_USER: ${MYSQL_USER:-homework}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ChangeMeAppPwd123!}
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./HomeworkSystem/docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  backend:
+    build:
+      context: .
+      dockerfile: HomeworkSystem/docker/dockerfile
+    container_name: homework-backend
+    restart: unless-stopped
+    environment:
+      TZ: Asia/Shanghai
+      GIN_MODE: release
+      APP_PORT: 8080
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${MYSQL_DATABASE:-homeworksystem}
+      DB_USER: ${MYSQL_USER:-homework}
+      DB_PASSWORD: ${MYSQL_PASSWORD:-ChangeMeAppPwd123!}
+      JWT_SECRET: ${JWT_SECRET:-PleaseChangeThisJWTSecret}
+      DB_MAX_IDLE: ${DB_MAX_IDLE:-10}
+      DB_MAX_OPEN: ${DB_MAX_OPEN:-50}
+      DB_MAX_LIFE_MINUTES: ${DB_MAX_LIFE_MINUTES:-30}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8080/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend-03/docker/dockerfile
+    container_name: homework-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_started
+    ports:
+      - "${FRONTEND_PORT:-80}:80"
+
+volumes:
+  mysql-data:

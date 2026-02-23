@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios'
+import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 import { ElMessage } from 'element-plus'
 import type { LoginResponse, UserInfo, Homework, Submission, ListResponse } from '@/types/api'
 
@@ -12,6 +12,24 @@ const api: AxiosInstance = axios.create({
   timeout: 10000,
 })
 
+let refreshingToken = false
+let pendingRequests: Array<(token: string) => void> = []
+
+const notifyPendingRequests = (token: string) => {
+  pendingRequests.forEach((callback) => callback(token))
+  pendingRequests = []
+}
+
+const normalizeErrorMessage = (error: AxiosError): string => {
+  if (error.response?.data && typeof error.response.data === 'object') {
+    const data = error.response.data as { message?: string }
+    if (data.message) {
+      return data.message
+    }
+  }
+  return error.message || '网络错误'
+}
+
 // 响应拦截器 - 直接返回 data 字段
 api.interceptors.response.use(
   (response) => {
@@ -23,13 +41,60 @@ api.interceptors.response.use(
       return Promise.reject(new Error(message))
     }
   },
-  (error) => {
+  async (error: AxiosError) => {
+    const originalRequest = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
+      const refreshToken = localStorage.getItem('refresh_token')
+      if (!refreshToken) {
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+        window.location.href = '/login'
+        return Promise.reject(error)
+      }
+
+      originalRequest._retry = true
+      if (refreshingToken) {
+        return new Promise((resolve) => {
+          pendingRequests.push((newToken: string) => {
+            originalRequest.headers.Authorization = `Bearer ${newToken}`
+            resolve(api(originalRequest))
+          })
+        })
+      }
+
+      refreshingToken = true
+      try {
+        const refreshRes = await axios.post<{ code: number; data: LoginResponse; message: string }>(
+          `${API_BASE_URL}/user/refresh`,
+          { refresh_token: refreshToken }
+        )
+        const newToken = refreshRes.data?.data?.access_token
+        if (!newToken) {
+          throw new Error('刷新 token 失败')
+        }
+        localStorage.setItem('access_token', newToken)
+        localStorage.setItem('refresh_token', refreshRes.data.data.refresh_token)
+        notifyPendingRequests(newToken)
+        originalRequest.headers.Authorization = `Bearer ${newToken}`
+        return api(originalRequest)
+      } catch (refreshError) {
+        localStorage.removeItem('access_token')
+        localStorage.removeItem('refresh_token')
+        localStorage.removeItem('user')
+        window.location.href = '/login'
+        return Promise.reject(refreshError)
+      } finally {
+        refreshingToken = false
+      }
+    }
+
     if (error.response?.status === 401) {
       localStorage.removeItem('access_token')
       localStorage.removeItem('refresh_token')
       window.location.href = '/login'
     }
-    ElMessage.error(error.message || '网络错误')
+    ElMessage.error(normalizeErrorMessage(error))
     return Promise.reject(error)
   }
 )
@@ -55,7 +120,7 @@ export const userAPI = {
     username: string
     password: string
     nickname: string
-    department: string
+    subject: string
     role: string
   }): Promise<any> => api.post('/user/register', data),
 
@@ -73,6 +138,9 @@ export const userAPI = {
   // 注销账号 - DELETE /user/account
   deleteAccount: (password: string): Promise<any> =>
     api.delete('/user/account', { data: { password } }),
+
+  assignStudent: (studentId: number): Promise<any> =>
+    api.post('/teachers/students', { student_id: studentId }),
 }
 
 // 作业相关 API
@@ -81,14 +149,14 @@ export const homeworkAPI = {
   create: (data: {
     title: string
     description: string
-    department: string
+    subject: string
     deadline: string
     allow_late?: boolean
   }): Promise<Homework> => api.post('/homeworks', data),
 
   // 获取作业列表 - GET /homework
   getList: (params?: {
-    department?: string
+    subject?: string
     page?: number
     page_size?: number
   }): Promise<ListResponse<Homework>> =>
@@ -124,10 +192,19 @@ export const submissionAPI = {
 
   // 获取我的提交列表 - GET /submission/my
   getMySubmissions: (params?: {
+    homework_id?: number
     page?: number
     page_size?: number
   }): Promise<ListResponse<Submission>> =>
     api.get('/submissions/my', { params }),
+
+  getMySubmission: async (homeworkId: string | number): Promise<Submission | null> => {
+    const data = await api.get<ListResponse<Submission>>('/submissions/my', {
+      params: { page: 1, page_size: 100, homework_id: homeworkId },
+    })
+    const matched = data.list?.find((item) => item.homework?.id === Number(homeworkId))
+    return matched ?? null
+  },
 
   // 获取我的提交列表 - GET /submission
   getSubmissions: (params?: {

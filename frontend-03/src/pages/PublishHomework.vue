@@ -48,15 +48,17 @@
               <el-input v-model="form.description" type="textarea" rows="6" placeholder="详细描述作业要求、提交格式等..." />
             </el-form-item>
 
-            <el-form-item label="所属部门" prop="department">
-              <el-select v-model="form.department" placeholder="选择部门">
-                <el-option label="后端" value="backend" />
-                <el-option label="前端" value="frontend" />
-                <el-option label="SRE" value="sre" />
-                <el-option label="产品" value="product" />
-                <el-option label="视觉设计" value="design" />
-                <el-option label="Android" value="android" />
-                <el-option label="iOS" value="ios" />
+            <el-form-item label="所属学科" prop="subject">
+              <el-select v-model="form.subject" placeholder="选择学科">
+                <el-option label="语文" value="chinese" />
+                <el-option label="数学" value="math" />
+                <el-option label="英语" value="english" />
+                <el-option label="物理" value="physics" />
+                <el-option label="化学" value="chemistry" />
+                <el-option label="生物" value="biology" />
+                <el-option label="历史" value="history" />
+              <el-option label="地理" value="geography" />
+              <el-option label="政治" value="politics" />
               </el-select>
             </el-form-item>
 
@@ -98,7 +100,7 @@ const publishing = ref(false)
 const form = ref({
   title: '',
   description: '',
-  department: 'backend',
+  subject: 'chinese',
   deadline: '',
   allow_late: false,
 })
@@ -106,7 +108,7 @@ const form = ref({
 const rules = {
   title: [{ required: true, message: '请输入作业标题', trigger: 'blur' }],
   description: [{ required: true, message: '请输入作业描述', trigger: 'blur' }],
-  department: [{ required: true, message: '请选择部门', trigger: 'change' }],
+  subject: [{ required: true, message: '请选择学科', trigger: 'change' }],
   deadline: [{ required: true, message: '请选择截止时间', trigger: 'change' }],
 }
 

@@ -3,7 +3,7 @@
     <!-- 顶部导航栏 -->
     <header class="dashboard-header">
       <div class="header-left">
-        <h1 class="header-title">作业管理系统</h1>
+        <h1 class="header-title">作业提交系统</h1>
         <el-input v-model="searchQuery" placeholder="搜索作业..." prefix-icon="Search" class="search-input" clearable />
       </div>
       <div class="header-right">
@@ -42,7 +42,7 @@
             </el-icon>
             <span>我的作业</span>
           </div>
-          <div v-if="userStore.user?.role === 'admin'" class="nav-item" :class="{ active: activeMenu === 'publish' }"
+          <div v-if="userStore.user?.role === 'teacher'" class="nav-item" :class="{ active: activeMenu === 'publish' }"
             @click="$router.push('/publish')">
             <el-icon>
               <Edit />
@@ -55,7 +55,7 @@
             </el-icon>
             <span>优秀作业</span>
           </div>
-          <div v-if="userStore.user?.role === 'admin'" class="nav-item"
+          <div v-if="userStore.user?.role === 'teacher'" class="nav-item"
             :class="{ active: activeMenu === 'submissions' }" @click="handleMenuClick('submissions')">
             <el-icon>
               <Check />
@@ -72,16 +72,18 @@
         <div class="page-header">
           <h2>{{ pageTitle }}</h2>
           <div class="header-actions" v-if="activeMenu === 'all'">
-            <el-select v-model="selectedDepartment" placeholder="请选择部门" class="filter-select"
+            <el-select v-model="selectedDepartment" placeholder="请选择学科" class="filter-select"
               @change="handleHomework(selectedDepartment)">
-              <el-option label="全部部门" value="all" />
-              <el-option label="后端" value="backend" />
-              <el-option label="前端" value="frontend" />
-              <el-option label="SRE" value="sre" />
-              <el-option label="产品" value="product" />
-              <el-option label="视觉设计" value="design" />
-              <el-option label="Android" value="android" />
-              <el-option label="iOS" value="ios" />
+              <el-option label="全部学科" value="all" />
+              <el-option label="语文" value="chinese" />
+              <el-option label="数学" value="math" />
+              <el-option label="英语" value="english" />
+              <el-option label="物理" value="physics" />
+              <el-option label="化学" value="chemistry" />
+              <el-option label="生物" value="biology" />
+              <el-option label="历史" value="history" />
+              <el-option label="地理" value="geography" />
+              <el-option label="政治" value="politics" />
             </el-select>
           </div>
         </div>
@@ -107,15 +109,17 @@
               <el-switch v-model="formData.allow_late" />
             </el-form-item>
 
-            <el-form-item label="部门" :label-width="70">
-              <el-select v-model="formData.department" placeholder="请选择部门" style="width: 100%;">
-                <el-option label="后端" value="backend" />
-                <el-option label="前端" value="frontend" />
-                <el-option label="SRE" value="sre" />
-                <el-option label="产品" value="product" />
-                <el-option label="视觉设计" value="design" />
-                <el-option label="Android" value="android" />
-                <el-option label="iOS" value="ios" />
+            <el-form-item label="学科" :label-width="70">
+              <el-select v-model="formData.subject" placeholder="请选择学科" style="width: 100%;">
+                <el-option label="语文" value="chinese" />
+                <el-option label="数学" value="math" />
+                <el-option label="英语" value="english" />
+                <el-option label="物理" value="physics" />
+                <el-option label="化学" value="chemistry" />
+                <el-option label="生物" value="biology" />
+                <el-option label="历史" value="history" />
+              <el-option label="地理" value="geography" />
+              <el-option label="政治" value="politics" />
               </el-select>
             </el-form-item>
 
@@ -163,15 +167,17 @@
             </el-form-item>
 
 
-            <el-form-item label="部门" :label-width="70">
-              <el-select v-model="formData.department" placeholder="请选择部门" style="width: 100%;">
-                <el-option label="后端" value="backend" />
-                <el-option label="前端" value="frontend" />
-                <el-option label="SRE" value="sre" />
-                <el-option label="产品" value="product" />
-                <el-option label="视觉设计" value="design" />
-                <el-option label="Android" value="android" />
-                <el-option label="iOS" value="ios" />
+            <el-form-item label="学科" :label-width="70">
+              <el-select v-model="formData.subject" placeholder="请选择学科" style="width: 100%;">
+                <el-option label="语文" value="chinese" />
+                <el-option label="数学" value="math" />
+                <el-option label="英语" value="english" />
+                <el-option label="物理" value="physics" />
+                <el-option label="化学" value="chemistry" />
+                <el-option label="生物" value="biology" />
+                <el-option label="历史" value="history" />
+              <el-option label="地理" value="geography" />
+              <el-option label="政治" value="politics" />
               </el-select>
             </el-form-item>
             <template #footer>
@@ -227,7 +233,7 @@
             <el-table-column fixed label="发布者" prop="creator.nickname" />
             <el-table-column fixed label="发布者ID" prop="creator.id" />
             <el-table-column fixed label="截止日期" prop="deadline" />
-            <el-table-column fixed label="部门" prop="department_label" />
+            <el-table-column fixed label="学科" prop="subject_label" />
             <el-table-column fixed label="是否允许迟交" prop="allow_late">
               <template #default="scope">
                 <span :style="{ color: scope.row.allow_late ? '#67C23A' : '#F56C6C' }">
@@ -241,7 +247,7 @@
               </template>
               <template #default="scope">
 
-                <el-button size="small" v-if="userStore.user?.role === 'admin' ? true : false"
+                <el-button size="small" v-if="userStore.user?.role === 'teacher' ? true : false"
                   @click="handleEdit(scope.$index, scope.row)">
                   修改
 
@@ -251,7 +257,7 @@
                   提交作业
 
                 </el-button>
-                <el-button size="small" v-if="userStore.user?.role === 'admin' ? true : false" type="danger"
+                <el-button size="small" v-if="userStore.user?.role === 'teacher' ? true : false" type="danger"
                   @click="handleDelete(scope.$index, scope.row)">
                   删除
                 </el-button>
@@ -301,11 +307,11 @@
                 <el-input v-model="search" size="small" placeholder="Type to search" />
               </template>
               <template #default="scope">
-                <el-button size="small" v-if="userStore.user?.role === 'admin' ? true : false"
+                <el-button size="small" v-if="userStore.user?.role === 'teacher' ? true : false"
                   @click="handleEdit1(scope.$index, scope.row)">
                   批改
                 </el-button>
-                <el-button size="small" v-if="userStore.user?.role === 'admin' ? true : false" type="danger"
+                <el-button size="small" v-if="userStore.user?.role === 'teacher' ? true : false" type="danger"
                   @click="handleDelete(scope.$index, scope.row)">
                   删除
                 </el-button>
@@ -425,7 +431,7 @@ const updatePageTitle = (menu: string) => {
 
 const filteredHomeworks = computed(() => {
   return homeworks.value.filter((hw) => {
-    const matchDept = !selectedDepartment.value || hw.department === selectedDepartment.value
+    const matchDept = !selectedDepartment.value || hw.subject === selectedDepartment.value
     const matchSearch = !searchQuery.value || hw.title.includes(searchQuery.value)
     return matchDept && matchSearch
   })
@@ -456,17 +462,17 @@ const handleHomework = async (val: string) => {
 
   if (val === "all") {
     pageTitle = '所有作业'
-    departments = 'all'
+    subjects = 'all'
   } else if (val === "my") {
     pageTitle = '我的作业'
-    departments = ''
+    subjects = ''
   } else {
     pageTitle = '所有作业'
-    departments = selectedDepartment.value
+    subjects = selectedDepartment.value
   }
 
   const hwRes = await homeworkAPI.getList({
-    department: departments,
+    subject: subjects,
     page: currentPage.value,
     page_size: pageSize.value,
   })
@@ -510,17 +516,17 @@ const handleCurrentChange = (val: number) => {
 }
 
 var pageTitle = '所有作业'
-var departments = 'all'
+var subjects = 'all'
 const loadData = async () => {
   try {
     switch (activeMenu.value) {
       case "all":
         pageTitle = '所有作业'
-        departments = selectedDepartment.value
+        subjects = selectedDepartment.value
         break;
       case "my":
         pageTitle = '我的作业'
-        departments = ""
+        subjects = ""
         break;
       case "excellent":
         pageTitle = '优秀作业'
@@ -530,7 +536,7 @@ const loadData = async () => {
         break;
       default:
         pageTitle = '所有作业'
-        departments = 'all'
+        subjects = 'all'
     }
 
     handleHomework('all')
@@ -546,7 +552,7 @@ const loadData = async () => {
     //   } selectedDepartment.value
 
     //   // 如果是老师，加载待批改
-    //   if (userStore.user?.role === 'admin') {
+    //   if (userStore.user?.role === 'teacher') {
     //     const pendRes = await submissionAPI.getByHomework(0)
     //     pendingSubmissions.value = pendRes.list || []
     //   }
@@ -578,7 +584,7 @@ const formData = reactive({
   id: '',
   title: '',
   description: '',
-  department: '',
+  subject: '',
   deadline: '',
   allow_late: false,
 })
@@ -623,7 +629,7 @@ const handleEdit1 = async (index: number, row: any) => {
   // formData1.id = row.id || ''
   // formData1.title = row.title || ''
   // formData1.description = row.description || ''
-  // formData1.department = row.department || 'backend' // 设置默认值
+  // formData1.subject = row.subject || 'chinese' // 设置默认值
   // formData1.deadline = row.deadline || ''
   // formData1.is_excellent = row.is_excellent || ''
 }
@@ -634,7 +640,7 @@ const handleEdit = async (index: number, row: any) => {
   formData.id = row.id || ''
   formData.title = row.title || ''
   formData.description = row.description || ''
-  formData.department = row.department || 'backend' // 设置默认值
+  formData.subject = row.subject || 'chinese' // 设置默认值
   formData.deadline = row.deadline || ''
   formData.allow_late = row.allow_late || ''
 }
@@ -692,7 +698,7 @@ const handleConfirmEdit = async () => {
     const updateData = {
       title: formData.title,
       description: formData.description,
-      department: formData.department,
+      subject: formData.subject,
       deadline: formData.deadline,
       allow_late: formData.allow_late
     }
@@ -709,7 +715,7 @@ const handleConfirmEdit = async () => {
     await loadData()
 
   } catch (error) {
-    ElMessage.error('暂无权限修改其他部门作业')
+    ElMessage.error('暂无权限修改其他学科作业')
   }
 }
 const handleDelete = async (index: number, row: any) => {
@@ -719,7 +725,7 @@ const handleDelete = async (index: number, row: any) => {
     ElMessage.success('删除成功');
     loadData()
   } catch (error) {
-    ElMessage.error('暂无权限删除其他部门作业');
+    ElMessage.error('暂无权限删除其他学科作业');
   }
 }
 
