@@ -19,7 +19,7 @@
                 <div class="card-header">
                     <h2>{{ homework?.title || '加载中...' }}</h2>
                     <div class="homework-meta" v-if="homework">
-                        <el-tag type="info" size="small">部门: {{ homework.department_label }}</el-tag>
+                        <el-tag type="info" size="small">学科: {{ homework.subject_label }}</el-tag>
                         <el-tag type="warning" size="small">截止: {{ formatDeadline(homework.deadline) }}</el-tag>
                         <el-tag :type="isLate ? 'danger' : 'success'" size="small">
                             {{ isLate ? '已截止' : '进行中' }}

@@ -17,7 +17,7 @@
           <path d="M 50 60 Q 100 30 150 60" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2" />
         </svg>
       </div>
-      <h1 class="brand-title">作业管理系统</h1>
+      <h1 class="brand-title">作业提交系统</h1>
       <p class="brand-subtitle">高效的作业管理平台</p>
     </div>
 
@@ -40,21 +40,23 @@
           <el-form-item v-if="!isLogin" prop="role">
             <el-select v-model="formData.role" placeholder="先选择角色" size="large" clearable @change="handleRoleChange">
               <el-option label="学生" value="student" />
-              <el-option label="老师" value="admin" />
+              <el-option label="老师" value="teacher" />
             </el-select>
           </el-form-item>
 
-          <!-- 注册时的部门选择 - 根据角色显示不同的部门选项 -->
-          <el-form-item v-if="!isLogin && formData.role" prop="department">
-            <el-select v-model="formData.department" :placeholder="departmentPlaceholder" size="large" clearable>
-              <template v-if="formData.role === 'student' || 'teacher'">
-                <el-option label="后端" value="backend" />
-                <el-option label="前端" value="frontend" />
-                <el-option label="SRE" value="sre" />
-                <el-option label="产品" value="product" />
-                <el-option label="视觉设计" value="design" />
-                <el-option label="Android" value="android" />
-                <el-option label="iOS" value="ios" />
+          <!-- 注册时的学科选择 - 根据角色显示不同的学科选项 -->
+          <el-form-item v-if="!isLogin && formData.role" prop="subject">
+            <el-select v-model="formData.subject" :placeholder="subjectPlaceholder" size="large" clearable>
+              <template v-if="formData.role === 'student' || formData.role === 'teacher'">
+                <el-option label="语文" value="chinese" />
+                <el-option label="数学" value="math" />
+                <el-option label="英语" value="english" />
+                <el-option label="物理" value="physics" />
+                <el-option label="化学" value="chemistry" />
+                <el-option label="生物" value="biology" />
+                <el-option label="历史" value="history" />
+                <el-option label="地理" value="geography" />
+                <el-option label="政治" value="politics" />
               </template>
             </el-select>
           </el-form-item>
@@ -122,28 +124,29 @@ const formData = ref({
   nickname: '',
   password: '',
   confirmPassword: '',
-  department: '',
+  subject: '',
   role: '',
 })
 
-// 计算部门选择框的占位符
-const departmentPlaceholder = computed(() => {
+// 计算学科选择框的占位符
+const subjectPlaceholder = computed(() => {
   if (!formData.value.role) {
     return '请先选择角色'
   }
-  return formData.value.role === 'student' ? '选择部门' : '选择管理部门'
+  return formData.value.role === 'student' ? '选择学科' : '选择教学学科'
 })
 
 // 切换为注册模式
 const switchToRegister = () => {
   isLogin.value = false
+  formRef.value?.clearValidate()
   // 重置表单数据，但保留用户名（方便用户注册）
   formData.value = {
     username: formData.value.username,
     nickname: '',
     password: '',
     confirmPassword: '',
-    department: '',
+    subject: '',
     role: '',
   }
 }
@@ -151,20 +154,21 @@ const switchToRegister = () => {
 // 切换为登录模式
 const switchToLogin = () => {
   isLogin.value = true
+  formRef.value?.clearValidate()
   formData.value = {
     username: formData.value.username,
     nickname: '',
     password: '',
     confirmPassword: '',
-    department: '',
+    subject: '',
     role: '',
   }
 }
 
 // 处理角色变化
 const handleRoleChange = () => {
-  // 角色变化时清空部门选择
-  formData.value.department = ''
+  // 角色变化时清空学科选择
+  formData.value.subject = ''
 }
 
 const validatePassword = (_rule: any, value: any, callback: any) => {
@@ -193,7 +197,7 @@ const rules = ref({
   nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
   password: [{ required: true, validator: validatePassword, trigger: 'blur' }],
   confirmPassword: [{ required: true, validator: validateConfirmPassword, trigger: 'blur' }],
-  department: [{ required: true, message: '请选择部门', trigger: 'change' }],
+  subject: [{ required: true, message: '请选择学科', trigger: 'change' }],
   role: [{ required: true, message: '请选择角色', trigger: 'change' }],
 })
 
@@ -206,21 +210,29 @@ const handleSubmit = async () => {
 
     if (isLogin.value) {
       // 登录
-      await userStore.login({
+      const success = await userStore.login({
         username: formData.value.username,
         password: formData.value.password,
       })
+      if (!success) {
+        ElMessage.error('登录失败，请检查账号或密码')
+        return
+      }
       ElMessage.success('登录成功')
       router.push('/')
     } else {
       // 注册
-      await userStore.register({
+      const success = await userStore.register({
         username: formData.value.username,
         password: formData.value.password,
         nickname: formData.value.nickname,
-        department: formData.value.department,
+        subject: formData.value.subject,
         role: formData.value.role,
       })
+      if (!success) {
+        ElMessage.error('注册失败，请稍后重试')
+        return
+      }
       ElMessage.success('注册成功，请登录')
       isLogin.value = true
       formData.value = {
@@ -228,7 +240,7 @@ const handleSubmit = async () => {
         nickname: '',
         password: '',
         confirmPassword: '',
-        department: '',
+        subject: '',
         role: '',
       }
     }
@@ -380,7 +392,7 @@ const handleSubmit = async () => {
         }
       }
 
-      // 角色和部门选择器样式
+      // 角色和学科选择器样式
       :deep(.el-select) {
         width: 100%;
       }

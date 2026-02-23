@@ -1,10 +1,7 @@
 package handler
 
 import (
-	"strconv"
-
 	"github.com/gin-gonic/gin"
-	"github.com/xieyuxuan109/homeworksystem/configs"
 	"github.com/xieyuxuan109/homeworksystem/dao"
 	"github.com/xieyuxuan109/homeworksystem/model"
 	"github.com/xieyuxuan109/homeworksystem/pkg"
@@ -38,7 +35,7 @@ func Login(c *gin.Context) {
 		pkg.BadResponse(c, "登录失败", err)
 		return
 	}
-	result, err := pkg.GenerateTokens(response.ID, response.Username, response.Role, response.Department)
+	result, err := pkg.GenerateTokens(response.ID, response.Username, response.Role, response.Subject)
 	if err != nil {
 		pkg.BadResponse(c, "token生成失败", err)
 		return
@@ -100,14 +97,16 @@ func DeleteAccount(c *gin.Context) {
 }
 
 func SetRelation(c *gin.Context) {
-	teacher_id, _ := c.Get("user_id")
-	id := c.Query("id")
-	student_id, _ := strconv.Atoi(id)
-	var req model.TeacherStudent
-	req = model.TeacherStudent{
-		TeacherID: teacher_id.(uint),
-		StudentID: uint(student_id),
+	teacherID, _ := c.Get("user_id")
+	var req model.AssignStudentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		pkg.BadResponse(c, "参数错误", err)
+		return
 	}
-	configs.DB.Create(&req)
-	pkg.GoodResponse(c, "创建成功", req)
+	relation, err := service.AssignStudent(teacherID.(uint), req)
+	if err != nil {
+		pkg.BadResponse(c, "绑定失败", err)
+		return
+	}
+	pkg.GoodResponse(c, "绑定成功", relation)
 }

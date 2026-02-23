@@ -46,8 +46,8 @@
 
             <div class="info-section">
               <div class="info-item">
-                <span class="label">部门：</span>
-                <span class="value">{{ homework?.department_label }}</span>
+                <span class="label">学科：</span>
+                <span class="value">{{ homework?.subject_label }}</span>
               </div>
               <div class="info-item">
                 <span class="label">截止时间：</span>
@@ -68,7 +68,7 @@
           </el-card>
 
           <!-- 学生提交列表（教师视图） -->
-          <el-card v-if="userStore.user?.role === 'admin'" class="submissions-card">
+          <el-card v-if="userStore.user?.role === 'teacher'" class="submissions-card">
             <template #header>
               <span class="card-title">学生提交</span>
             </template>
@@ -237,7 +237,7 @@ const fetchHomeworkDetail = async () => {
     const data = await homeworkAPI.getDetail(id)
     homework.value = data
 
-    if (userStore.user?.role === 'admin') {
+    if (userStore.user?.role === 'teacher') {
       const submissionsData = await submissionAPI.getByHomework(id)
       submissions.value = submissionsData.list || []
     } else {

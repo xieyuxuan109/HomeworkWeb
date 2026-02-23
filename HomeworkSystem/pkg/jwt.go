@@ -12,23 +12,23 @@ var JWT_SECRET string = os.Getenv("JWT_SECRET")
 
 // 自定义 Claims，明确指定类型
 type Claims struct {
-	UserID     uint   `json:"user_id"`
-	Username   string `json:"username"`
-	Department string `json:"department"`
-	Role       string `json:"role"`
-	Type       string `json:"type"`
+	UserID   uint   `json:"user_id"`
+	Username string `json:"username"`
+	Subject  string `json:"subject"`
+	Role     string `json:"role"`
+	Type     string `json:"type"`
 	jwt.RegisteredClaims
 }
 
 // 生成双Token
-func GenerateTokens(userID uint, username string, role string, department string) (map[string]string, error) {
+func GenerateTokens(userID uint, username string, role string, subject string) (map[string]string, error) {
 	// Access Token
 	accessClaims := Claims{
-		UserID:     userID,
-		Username:   username,
-		Role:       role,
-		Department: department,
-		Type:       "access",
+		UserID:   userID,
+		Username: username,
+		Role:     role,
+		Subject:  subject,
+		Type:     "access",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
@@ -42,11 +42,11 @@ func GenerateTokens(userID uint, username string, role string, department string
 	}
 	// Refresh Token (7天过期)
 	refreshClaims := Claims{
-		UserID:     userID,
-		Username:   username,
-		Role:       role,
-		Department: department,
-		Type:       "refresh",
+		UserID:   userID,
+		Username: username,
+		Role:     role,
+		Subject:  subject,
+		Type:     "refresh",
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(7 * 24 * time.Hour)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

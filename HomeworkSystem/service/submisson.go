@@ -3,17 +3,19 @@ package service
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/xieyuxuan109/homeworksystem/configs"
+	"github.com/xieyuxuan109/homeworksystem/dao"
 	"github.com/xieyuxuan109/homeworksystem/model"
 )
 
 var Lock sync.Mutex
 
-func SubmitHomework(req model.SubmissionRequest, Department string, ID uint) (res *model.SubmissionResponse, err error) {
+func SubmitHomework(req model.SubmissionRequest, subject string, ID uint) (res *model.SubmissionResponse, err error) {
 	var homework model.Homework
 	var submission model.Submission
 	var submissionExist model.Submission
@@ -21,7 +23,10 @@ func SubmitHomework(req model.SubmissionRequest, Department string, ID uint) (re
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	if homework.Department == Department {
+	if homework.Subject == subject {
+		if !dao.IsTeacherStudentRelated(homework.CreatorID, ID) {
+			return nil, errors.New("仅可提交自己老师布置的作业")
+		}
 		isLate := time.Now().After(homework.Deadline)
 		submission.IsLate = isLate
 		if isLate {
@@ -40,7 +45,7 @@ func SubmitHomework(req model.SubmissionRequest, Department string, ID uint) (re
 			submission.FileURL = req.FileURL
 		}
 	} else {
-		return nil, errors.New("该作业不是所在部门的作业")
+		return nil, errors.New("该作业不是所在学科的作业")
 	}
 	result = configs.DB.Create(&submission)
 	if result.Error != nil {
@@ -59,11 +64,15 @@ func SubmitHomework(req model.SubmissionRequest, Department string, ID uint) (re
 	return res, nil
 }
 
-func SubmitHomeworkList(ID uint, page int, offset int) (res []map[string]interface{}, total int64, err error) {
+func SubmitHomeworkList(ID uint, page int, offset int, homeworkID uint) (res []map[string]interface{}, total int64, err error) {
 	var submissions []model.Submission
 	res = make([]map[string]interface{}, 0)
-	configs.DB.Model(&model.Submission{}).Where("student_id=?", ID).Count(&total)
-	result := configs.DB.Where("student_id=?", ID).Preload("Homework").Offset(offset).Limit(page).Find(&submissions)
+	query := configs.DB.Model(&model.Submission{}).Where("student_id=?", ID)
+	if homeworkID > 0 {
+		query = query.Where("homework_id = ?", homeworkID)
+	}
+	query.Count(&total)
+	result := query.Preload("Homework").Offset(offset).Limit(page).Find(&submissions)
 
 	if result.Error != nil {
 		return nil, 0, result.Error
@@ -74,8 +83,10 @@ func SubmitHomeworkList(ID uint, page int, offset int) (res []map[string]interfa
 			"homework": gin.H{
 				"id":               v.Homework.ID,
 				"title":            v.Homework.Title,
-				"department":       v.Homework.Department,
-				"department_label": model.GetDepartmentLabel(v.Homework.Department),
+				"subject":          v.Homework.Subject,
+				"subject_label":    model.GetSubjectLabel(v.Homework.Subject),
+				"department":       v.Homework.Subject,
+				"department_label": model.GetSubjectLabel(v.Homework.Subject),
 			},
 			"score":        v.Score,
 			"comment":      v.Comment,
@@ -86,9 +97,10 @@ func SubmitHomeworkList(ID uint, page int, offset int) (res []map[string]interfa
 	return res, total, nil
 }
 
-func MarkExcellent(req model.Excellent, id uint) (res gin.H, err error) {
+func MarkExcellent(req model.Excellent, id uint, teacherID uint) (res gin.H, err error) {
 	result := configs.DB.Model(&model.Submission{}).Where("id=?", id).Updates(model.Submission{
 		IsExcellent: req.IsExcellent,
+		ReviewerID:  teacherID,
 	})
 	if result.Error != nil {
 		return nil, result.Error
@@ -104,7 +116,7 @@ func MarkExcellent(req model.Excellent, id uint) (res gin.H, err error) {
 	}
 	return res, nil
 }
-func CorrectHomework(req model.CorrectHomework, id uint) (res gin.H, err error) {
+func CorrectHomework(req model.CorrectHomework, id uint, teacherID uint) (res gin.H, err error) {
 	Lock.Lock()
 	defer Lock.Unlock()
 	now := time.Now()
@@ -112,6 +124,7 @@ func CorrectHomework(req model.CorrectHomework, id uint) (res gin.H, err error) 
 		IsExcellent: req.IsExcellent,
 		Score:       req.Score,
 		Comment:     req.Comment,
+		ReviewerID:  teacherID,
 		ReviewedAt:  &now,
 	})
 	if result.Error != nil {
@@ -131,7 +144,7 @@ func CorrectHomework(req model.CorrectHomework, id uint) (res gin.H, err error) 
 	return res, nil
 }
 
-func ExcellentHomeworks(department string, offset int, page int, pageSize int) (gin.H, error) {
+func ExcellentHomeworks(subject string, offset int, page int, pageSize int) (gin.H, error) {
 	var submissions []model.Submission
 	var total int64
 
@@ -140,9 +153,9 @@ func ExcellentHomeworks(department string, offset int, page int, pageSize int) (
 		Preload("Homework")
 
 	// 2. 按部门筛选（这里筛选的是作业的部门）
-	if department != "" && department != "all" {
+	if subject != "" && subject != "all" {
 		query = query.Joins("LEFT JOIN homeworks h ON h.id = submissions.homework_id").
-			Where("h.department = ?", department)
+			Where("h.subject = ?", subject)
 	}
 
 	// 3. 计算总数（分页必须）
@@ -167,7 +180,8 @@ func ExcellentHomeworks(department string, offset int, page int, pageSize int) (
 			homeworkInfo = map[string]interface{}{
 				"id":         v.Homework.ID,
 				"title":      v.Homework.Title,
-				"department": v.Homework.Department,
+				"subject":    v.Homework.Subject,
+				"department": v.Homework.Subject,
 			}
 		}
 
@@ -176,8 +190,10 @@ func ExcellentHomeworks(department string, offset int, page int, pageSize int) (
 			"student": map[string]interface{}{
 				"id":               v.StudentID,
 				"nickname":         v.Student.Nickname,
-				"department":       v.Student.Department,
-				"department_label": model.GetDepartmentLabel(v.Student.Department),
+				"subject":          v.Student.Subject,
+				"subject_label":    model.GetSubjectLabel(v.Student.Subject),
+				"department":       v.Student.Subject,
+				"department_label": model.GetSubjectLabel(v.Student.Subject),
 			},
 			"homework":     homeworkInfo, // 添加作业信息
 			"content":      v.Content,
@@ -202,13 +218,18 @@ func ExcellentHomeworks(department string, offset int, page int, pageSize int) (
 	return response, nil
 }
 
-func GetSubmissions(tag string, submission string, sort string, sortName string, department string, offset int, page int, pageSize int) (gin.H, error) {
+func GetSubmissions(tag string, submission string, sort string, sortName string, subject string, teacherID uint, role string, offset int, page int, pageSize int) (gin.H, error) {
 	var submissions []model.Submission
 	var total int64
 	query := configs.DB.Preload("Student").
 		Preload("Homework")
-	query = query.Joins("LEFT JOIN homeworks h ON h.id = submissions.homework_id").
-		Where("h.department = ?", department)
+	query = query.Joins("LEFT JOIN homeworks h ON h.id = submissions.homework_id")
+	if subject != "" {
+		query = query.Where("h.subject = ?", subject)
+	}
+	if role == "teacher" {
+		query = query.Joins("INNER JOIN teacher_students ts ON ts.student_id = submissions.student_id AND ts.teacher_id = ?", teacherID)
+	}
 	if tag == "true" {
 		query = query.Where("submissions.is_excellent = ?", true)
 	}
@@ -221,6 +242,21 @@ func GetSubmissions(tag string, submission string, sort string, sortName string,
 	query.Model(&model.Submission{}).Count(&total)
 
 	// 4. 执行查询
+	allowedSortFields := map[string]bool{
+		"id":           true,
+		"created_at":   true,
+		"updated_at":   true,
+		"score":        true,
+		"is_excellent": true,
+	}
+	if !allowedSortFields[sortName] {
+		sortName = "id"
+	}
+	sort = strings.ToUpper(sort)
+	if sort != "ASC" && sort != "DESC" {
+		sort = "DESC"
+	}
+
 	err := query.Order(fmt.Sprintf("submissions.%s %s", sortName, sort)).
 		Offset(offset).
 		Limit(pageSize).
@@ -240,7 +276,7 @@ func GetSubmissions(tag string, submission string, sort string, sortName string,
 				"id":          v.Homework.ID,
 				"title":       v.Homework.Title,
 				"description": v.Homework.Description,
-				"department":  v.Homework.Department,
+				"subject":     v.Homework.Subject,
 			}
 		}
 
@@ -249,8 +285,10 @@ func GetSubmissions(tag string, submission string, sort string, sortName string,
 			"student": map[string]interface{}{
 				"id":               v.StudentID,
 				"nickname":         v.Student.Nickname,
-				"department":       v.Student.Department,
-				"department_label": model.GetDepartmentLabel(v.Student.Department),
+				"subject":          v.Student.Subject,
+				"subject_label":    model.GetSubjectLabel(v.Student.Subject),
+				"department":       v.Student.Subject,
+				"department_label": model.GetSubjectLabel(v.Student.Subject),
 			},
 			"homework":     homeworkInfo, // 添加作业信息
 			"content":      v.Content,

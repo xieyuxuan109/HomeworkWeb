@@ -16,6 +16,9 @@ export const useUserStore = defineStore('user', () => {
   }): Promise<boolean> => {
     try {
       const response = await userAPI.login(data)
+      if (!response?.access_token || !response?.refresh_token) {
+        return false
+      }
       token.value = response.access_token
       refreshToken.value = response.refresh_token
       user.value = response.user
@@ -37,7 +40,7 @@ export const useUserStore = defineStore('user', () => {
     username: string
     password: string
     nickname: string
-    department: string
+    subject: string
     role: string
   }): Promise<boolean> => {
     try {
@@ -58,6 +61,7 @@ export const useUserStore = defineStore('user', () => {
       return true
     } catch (error) {
       console.error('获取用户信息失败:', error)
+      logout()
       return false
     }
   }

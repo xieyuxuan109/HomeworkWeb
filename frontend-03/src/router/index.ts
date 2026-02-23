@@ -36,7 +36,7 @@ const routes: RouteRecordRaw[] = [
     path: '/publish',
     name: 'PublishHomework',
     component: PublishHomework,
-    meta: { requiresAuth: true, role: 'admin' },
+    meta: { requiresAuth: true, role: 'teacher' },
   },
   {
     path: '/excellent',

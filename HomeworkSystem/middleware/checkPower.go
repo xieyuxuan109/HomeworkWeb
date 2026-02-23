@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"strconv"
+
 	"github.com/gin-gonic/gin"
 	"github.com/xieyuxuan109/homeworksystem/configs"
 	"github.com/xieyuxuan109/homeworksystem/dao"
@@ -32,32 +34,24 @@ func RequireRole(allowedRoles ...string) gin.HandlerFunc {
 	}
 }
 
-// 验证老师与作业是否同部门
-func RequireSameHomeworkDepartment() gin.HandlerFunc {
+// 仅允许作业发布者操作作业
+func RequireHomeworkCreator() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 1. 获取当前老师部门
-		teacherDept, exists := c.Get("department")
-		if !exists {
-			pkg.BadResponse(c, "教师部门信息缺失", nil)
-			c.Abort()
-			return
-		}
-		// 2. 获取作业ID
+		teacherID := c.GetUint("user_id")
 		homeworkID := c.Param("id")
 		if homeworkID == "" {
 			pkg.BadResponse(c, "作业ID不能为空", nil)
 			c.Abort()
 			return
 		}
-		// 3. 查询作业部门
-		department, err := dao.SearchHWDepartment(homeworkID)
-		if err != nil {
-			pkg.BadResponse(c, "查询失败", err)
+		var hw model.Homework
+		if err := configs.DB.First(&hw, homeworkID).Error; err != nil {
+			pkg.BadResponse(c, "查询作业失败", err)
 			c.Abort()
 			return
 		}
-		if teacherDept.(string) != *department {
-			pkg.BadResponse(c, "权限不足", nil)
+		if hw.CreatorID != teacherID {
+			pkg.BadResponse(c, "仅能操作自己发布的作业", nil)
 			c.Abort()
 			return
 		}
@@ -65,33 +59,29 @@ func RequireSameHomeworkDepartment() gin.HandlerFunc {
 	}
 }
 
-func RequireSameHomeworkDepartmentEx() gin.HandlerFunc {
+// 仅允许老师批改自己绑定学生的提交，且禁止改动其他老师已批改记录
+func RequireTeacherStudentSubmission() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 1. 获取当前老师部门
-		teacherDept, exists := c.Get("department")
-		if !exists {
-			pkg.BadResponse(c, "教师部门信息缺失", nil)
-			c.Abort()
-			return
-		}
-		// 2. 获取提交作业ID
-		submissionID := c.Param("id")
-		if submissionID == "" {
-			pkg.BadResponse(c, "作业ID不能为空", nil)
-			c.Abort()
-			return
-		}
-		// 3. 查询作业部门
-		var submission model.Submission
-		err := configs.DB.Where("id=?", submissionID).Preload("Student").Find(&submission).Error
-		department := submission.Student.Department
+		teacherID := c.GetUint("user_id")
+		submissionID, err := strconv.Atoi(c.Param("id"))
 		if err != nil {
-			pkg.BadResponse(c, "查询失败", err)
+			pkg.BadResponse(c, "提交ID不合法", err)
 			c.Abort()
 			return
 		}
-		if teacherDept.(string) != department {
-			pkg.BadResponse(c, "权限不足", nil)
+		var submission model.Submission
+		if err := configs.DB.First(&submission, submissionID).Error; err != nil {
+			pkg.BadResponse(c, "查询提交失败", err)
+			c.Abort()
+			return
+		}
+		if submission.ReviewerID != 0 && submission.ReviewerID != teacherID {
+			pkg.BadResponse(c, "该提交已由其他老师批改", nil)
+			c.Abort()
+			return
+		}
+		if !dao.IsTeacherStudentRelated(teacherID, submission.StudentID) {
+			pkg.BadResponse(c, "仅能批改自己学生的提交", nil)
 			c.Abort()
 			return
 		}

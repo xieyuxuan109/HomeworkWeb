@@ -32,13 +32,16 @@ func CreateHomework(c *gin.Context) {
 }
 
 func GetHomeworks(c *gin.Context) {
-	department := c.Query("department")
+	subject := c.Query("subject")
+	if subject == "" {
+		subject = c.Query("department")
+	}
 	var user_id interface{}
 	role, _ := c.Get("role")
 	user_id, _ = c.Get("user_id")
 	userid := user_id.(uint)
 	var teacherIDs []uint
-	if role.(string) == "admin" {
+	if role.(string) == "teacher" {
 		teacherIDs = append(teacherIDs, userid)
 	} else {
 		configs.DB.Model(&model.TeacherStudent{}).
@@ -63,7 +66,7 @@ func GetHomeworks(c *gin.Context) {
 	}
 	offset := (page - 1) * pageSize
 
-	results, total, err := service.GetHomework(teacherIDs, department, offset, page, pageSize)
+	results, total, err := service.GetHomework(teacherIDs, subject, offset, page, pageSize)
 	if err != nil {
 		pkg.BadResponse(c, "获取失败", err)
 		return
@@ -94,11 +97,13 @@ func GetHomework(c *gin.Context) {
 		return
 	}
 	result := gin.H{
-		"id":              res.ID,
-		"title":           res.Title,
-		"description":     res.Description,
-		"department":      res.Department,
-		"deparment_label": model.GetDepartmentLabel(res.Department),
+		"id":               res.ID,
+		"title":            res.Title,
+		"description":      res.Description,
+		"subject":          res.Subject,
+		"subject_label":    model.GetSubjectLabel(res.Subject),
+		"department":       res.Subject,
+		"department_label": model.GetSubjectLabel(res.Subject),
 		"creator": gin.H{
 			"id":       res.Creator.ID,
 			"nickname": res.Creator.Nickname,
@@ -108,11 +113,13 @@ func GetHomework(c *gin.Context) {
 		"submission_count": sub.SubmissionCount,
 	}
 	results := gin.H{
-		"id":              res.ID,
-		"title":           res.Title,
-		"description":     res.Description,
-		"department":      res.Department,
-		"deparment_label": model.GetDepartmentLabel(res.Department),
+		"id":               res.ID,
+		"title":            res.Title,
+		"description":      res.Description,
+		"subject":          res.Subject,
+		"subject_label":    model.GetSubjectLabel(res.Subject),
+		"department":       res.Subject,
+		"department_label": model.GetSubjectLabel(res.Subject),
 		"creator": gin.H{
 			"id":       res.Creator.ID,
 			"nickname": res.Creator.Nickname,
@@ -127,7 +134,7 @@ func GetHomework(c *gin.Context) {
 		},
 	}
 	role, _ := c.Get("role")
-	if role == "admin" {
+	if role == "teacher" {
 		pkg.GoodResponse(c, "success", result)
 	} else {
 		pkg.GoodResponse(c, "success", results)

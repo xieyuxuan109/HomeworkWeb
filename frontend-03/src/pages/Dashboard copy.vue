@@ -3,7 +3,7 @@
     <!-- 顶部导航栏 -->
     <header class="dashboard-header">
       <div class="header-left">
-        <h1 class="header-title">作业管理系统</h1>
+        <h1 class="header-title">作业提交系统</h1>
         <el-input v-model="searchQuery" placeholder="搜索作业..." prefix-icon="Search" class="search-input" clearable />
       </div>
       <div class="header-right">
@@ -42,7 +42,7 @@
             </el-icon>
             <span>我的作业</span>
           </div>
-          <div v-if="userStore.user?.role === 'admin'" class="nav-item" :class="{ active: activeMenu === 'publish' }"
+          <div v-if="userStore.user?.role === 'teacher'" class="nav-item" :class="{ active: activeMenu === 'publish' }"
             @click="$router.push('/publish')">
             <el-icon>
               <Edit />
@@ -55,7 +55,7 @@
             </el-icon>
             <span>优秀作业</span>
           </div>
-          <div v-if="userStore.user?.role === 'admin'" class="nav-item"
+          <div v-if="userStore.user?.role === 'teacher'" class="nav-item"
             :class="{ active: activeMenu === 'submissions' }" @click="activeMenu = 'submissions'">
             <el-icon>
               <Check />
@@ -72,15 +72,17 @@
           <h2>{{ pageTitle }}</h2>
           <div class="header-actions" v-if="activeMenu === 'all'">
             activeMenu
-            <el-select v-model="selectedDepartment" placeholder="选择部门" clearable class="filter-select">
-              <el-option label="全部部门" value="" />
-              <el-option label="后端" value="backend" />
-              <el-option label="前端" value="frontend" />
-              <el-option label="SRE" value="sre" />
-              <el-option label="产品" value="product" />
-              <el-option label="视觉设计" value="design" />
-              <el-option label="Android" value="android" />
-              <el-option label="iOS" value="ios" />
+            <el-select v-model="selectedDepartment" placeholder="选择学科" clearable class="filter-select">
+              <el-option label="全部学科" value="" />
+              <el-option label="语文" value="chinese" />
+              <el-option label="数学" value="math" />
+              <el-option label="英语" value="english" />
+              <el-option label="物理" value="physics" />
+              <el-option label="化学" value="chemistry" />
+              <el-option label="生物" value="biology" />
+              <el-option label="历史" value="history" />
+              <el-option label="地理" value="geography" />
+              <el-option label="政治" value="politics" />
             </el-select>
           </div>
         </div>
@@ -100,7 +102,7 @@
                 </div>
                 <p class="card-description">{{ homework.description }}</p>
                 <div class="card-footer">
-                  <span class="department">{{ homework.department_label }}</span>
+                  <span class="subject">{{ homework.subject_label }}</span>
                   <span class="deadline">{{ formatDate(homework.deadline) }}</span>
                 </div>
                 <div class="card-progress">
@@ -124,7 +126,7 @@
                 </div>
                 <p class="card-description">{{ homework.description }}</p>
                 <div class="card-footer">
-                  <span class="department">{{ homework.department_label }}</span>
+                  <span class="subject">{{ homework.subject_label }}</span>
                   <span class="deadline">{{ formatDate(homework.deadline) }}</span>
                 </div>
               </div>
@@ -145,7 +147,7 @@
                   提交者：{{ submission.student.nickname }}
                 </p>
                 <div class="card-footer">
-                  <span class="department">{{ submission.homework.department_label }}</span>
+                  <span class="subject">{{ submission.homework.subject_label }}</span>
                   <span class="score">得分：{{ submission.score }}</span>
                 </div>
               </div>
@@ -192,7 +194,7 @@ const userStore = useUserStore()
 
 const activeMenu = ref('all')
 const Query = ref('')
-const selectedDepartment = ref('backend')
+const selectedDepartment = ref('chinese')
 const homeworks = ref<any[]>([])
 const myHomeworks = ref<any[]>([])
 const excellentSubmissions = ref<any[]>([])
@@ -210,7 +212,7 @@ const pageTitle = computed(() => {
 
 const filteredHomeworks = computed(() => {
   return homeworks.value.filter((hw) => {
-    const matchDept = !selectedDepartment.value || hw.department === selectedDepartment.value
+    const matchDept = !selectedDepartment.value || hw.subject === selectedDepartment.value
     const matchSearch = !searchQuery.value || hw.title.includes(searchQuery.value)
     return matchDept && matchSearch
   })
@@ -280,7 +282,7 @@ const loadData = async () => {
     }
 
     // 如果是老师，加载待批改
-    if (userStore.user?.role === 'admin') {
+    if (userStore.user?.role === 'teacher') {
       const pendRes = await submissionAPI.getByHomework(0)
       pendingSubmissions.value = pendRes.list || []
     }

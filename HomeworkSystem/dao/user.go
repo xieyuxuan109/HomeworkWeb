@@ -31,3 +31,19 @@ func UserExist(username string) bool {
 		Count(&count)
 	return count > 0
 }
+
+func ExistsUserByID(id uint) (*model.User, error) {
+	var user model.User
+	if err := configs.DB.First(&user, id).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func IsTeacherStudentRelated(teacherID, studentID uint) bool {
+	var count int64
+	configs.DB.Model(&model.TeacherStudent{}).
+		Where("teacher_id = ? AND student_id = ?", teacherID, studentID).
+		Count(&count)
+	return count > 0
+}

@@ -1,19 +1,26 @@
 package service
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/xieyuxuan109/homeworksystem/configs"
 	"github.com/xieyuxuan109/homeworksystem/dao"
 	"github.com/xieyuxuan109/homeworksystem/model"
-	"gorm.io/gorm"
 )
 
 func CreateHomework(req model.PostHomework, id uint) (*model.HomeworkResponse, error) {
+	subject := req.Subject
+	if subject == "" {
+		subject = req.Department
+	}
+	if model.GetSubjectLabel(subject) == "" {
+		return nil, errors.New("学科不合法")
+	}
 	homework := model.Homework{
 		CreatorID:   id,
 		Title:       req.Title,
 		Description: req.Description,
-		Department:  req.Department,
+		Subject:     subject,
 		Deadline:    req.Deadline,
 		AllowLate:   req.AllowLate,
 	}
@@ -29,19 +36,14 @@ func CreateHomework(req model.PostHomework, id uint) (*model.HomeworkResponse, e
 
 }
 
-func GetHomework(id []uint, department string, offset int, page int, pageSize int) ([]map[string]interface{}, int64, error) {
+func GetHomework(id []uint, subject string, offset int, page int, pageSize int) ([]map[string]interface{}, int64, error) {
 	var total int64
 	var homeworks []model.Homework
-	common := configs.DB.Model(&model.Homework{})
-	var query *gorm.DB
-	switch department {
-	case "all":
-		query = common.Preload("Creator").Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&homeworks)
-	case "":
-		query = common.Where("creator_id in (?)", id).Preload("Creator").Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&homeworks)
-	default:
-		query = common.Where("department = ?", department).Preload("Creator").Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&homeworks)
+	common := configs.DB.Model(&model.Homework{}).Where("creator_id in (?)", id)
+	if subject != "" && subject != "all" {
+		common = common.Where("subject = ?", subject)
 	}
+	query := common.Preload("Creator").Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&homeworks)
 	result := query.Count(&total)
 	if err := result.Error; err != nil {
 		return nil, 0, err
@@ -60,8 +62,10 @@ func GetHomework(id []uint, department string, offset int, page int, pageSize in
 			"id":               v.ID,
 			"title":            v.Title,
 			"description":      v.Description,
-			"department":       v.Department,
-			"department_label": model.GetDepartmentLabel(v.Department),
+			"subject":          v.Subject,
+			"subject_label":    model.GetSubjectLabel(v.Subject),
+			"department":       v.Subject,
+			"department_label": model.GetSubjectLabel(v.Subject),
 			"creator":          creatorInfo,
 			"deadline":         v.Deadline,
 			"allow_late":       v.AllowLate,

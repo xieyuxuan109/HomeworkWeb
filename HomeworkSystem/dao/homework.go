@@ -54,15 +54,15 @@ func DeleteHomework(id uint) error {
 	}
 	return nil
 }
-func SearchHWDepartment(id string) (*string, error) {
-	var department string
+func SearchHWSubject(id string) (*string, error) {
+	var subject string
 	err := configs.DB.Table("homeworks").
 		Where("id = ?", id).
-		Pluck("department", &department).Error
+		Pluck("subject", &subject).Error
 	if err != nil {
 		return nil, err
 	}
-	return &department, nil
+	return &subject, nil
 }
 func AddHW(hw model.Homework) error {
 	result := configs.DB.Create(&hw)

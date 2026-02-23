@@ -11,7 +11,7 @@ type Homework struct {
 	ID          uint           `json:"id"`
 	Title       string         `json:"title"`
 	Description string         `json:"description"`
-	Department  string         `json:"department"`
+	Subject     string         `json:"subject"`
 	CreatorID   uint           `json:"creator_id"`
 	Deadline    time.Time      `json:"deadline"`
 	AllowLate   bool           `json:"allow_late"`
@@ -26,7 +26,8 @@ type Homework struct {
 type PostHomework struct {
 	Title       string    `json:"title" binding:"required"`
 	Description string    `json:"description"`
-	Department  string    `json:"department" binding:"required,oneof=backend frontend sre product design android ios"`
+	Subject     string    `json:"subject"`
+	Department  string    `json:"department"`
 	Deadline    time.Time `json:"deadline" binding:"required"`
 	AllowLate   bool      `json:"allow_late" binding:"required"`
 }
@@ -35,8 +36,10 @@ type PostHomework struct {
 type HomeworkResponse struct {
 	ID              uint      `json:"id"`
 	Title           string    `json:"title"`
-	Department      string    `json:"department" binding:"required,oneof=backend frontend sre product design android ios"`
-	DepartmentLabel string    `json:"department_label"`
+	Subject         string    `json:"subject" binding:"required,oneof=chinese math english physics chemistry biology history geography politics"`
+	SubjectLabel    string    `json:"subject_label"`
+	Department      string    `json:"department,omitempty"`
+	DepartmentLabel string    `json:"department_label,omitempty"`
 	Deadline        time.Time `json:"deadline" binding:"required"`
 	AllowLate       bool      `json:"allow_late" binding:"required"`
 }
@@ -54,8 +57,10 @@ func (u *Homework) ToResponse() *HomeworkResponse {
 	return &HomeworkResponse{
 		ID:              u.ID,
 		Title:           u.Title,
-		Department:      u.Department,
-		DepartmentLabel: GetDepartmentLabel(u.Department),
+		Subject:         u.Subject,
+		SubjectLabel:    GetSubjectLabel(u.Subject),
+		Department:      u.Subject,
+		DepartmentLabel: GetSubjectLabel(u.Subject),
 		Deadline:        u.Deadline,
 		AllowLate:       u.AllowLate,
 	}
