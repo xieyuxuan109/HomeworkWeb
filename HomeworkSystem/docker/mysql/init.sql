@@ -85,3 +85,137 @@ CREATE TABLE `users` (
   UNIQUE KEY `username` (`username`),
   KEY `id_username` (`username`)
 ) ENGINE=InnoDB AUTO_INCREMENT=22 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- 创建 teacher_students 表
+
+DROP TABLE IF EXISTS teacher_students;
+
+CREATE TABLE teacher_students (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    teacher_id BIGINT UNSIGNED NOT NULL,
+    student_id BIGINT UNSIGNED NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (teacher_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+DROP PROCEDURE IF EXISTS init_homework_data;
+
+DELIMITER $$
+
+CREATE PROCEDURE init_homework_data()
+BEGIN
+
+DECLARE dept VARCHAR(20);
+DECLARE i INT;
+DECLARE teacher1 BIGINT;
+DECLARE teacher2 BIGINT;
+DECLARE s1 BIGINT;
+DECLARE s2 BIGINT;
+DECLARE s3 BIGINT;
+DECLARE hw BIGINT;
+
+-- 部门列表
+DECLARE dept_cursor CURSOR FOR 
+SELECT 'backend'
+UNION SELECT 'frontend'
+UNION SELECT 'sre'
+UNION SELECT 'product'
+UNION SELECT 'design'
+UNION SELECT 'android'
+UNION SELECT 'ios';
+
+DECLARE CONTINUE HANDLER FOR NOT FOUND SET i = NULL;
+
+OPEN dept_cursor;
+
+dept_loop: LOOP
+
+FETCH dept_cursor INTO dept;
+IF dept IS NULL THEN
+LEAVE dept_loop;
+END IF;
+
+-- 创建老师
+INSERT INTO users(username,password,nickname,role,department,email)
+VALUES(CONCAT(dept,'_teacher1'),'123456',CONCAT(dept,'老师1'),'admin',dept,CONCAT(dept,'t1@test.com'));
+
+SET teacher1 = LAST_INSERT_ID();
+
+INSERT INTO users(username,password,nickname,role,department,email)
+VALUES(CONCAT(dept,'_teacher2'),'123456',CONCAT(dept,'老师2'),'admin',dept,CONCAT(dept,'t2@test.com'));
+
+SET teacher2 = LAST_INSERT_ID();
+
+-- 创建学生
+INSERT INTO users(username,password,nickname,role,department,email)
+VALUES(CONCAT(dept,'_student1'),'123456',CONCAT(dept,'学生1'),'student',dept,CONCAT(dept,'s1@test.com'));
+
+SET s1 = LAST_INSERT_ID();
+
+INSERT INTO users(username,password,nickname,role,department,email)
+VALUES(CONCAT(dept,'_student2'),'123456',CONCAT(dept,'学生2'),'student',dept,CONCAT(dept,'s2@test.com'));
+
+SET s2 = LAST_INSERT_ID();
+
+INSERT INTO users(username,password,nickname,role,department,email)
+VALUES(CONCAT(dept,'_student3'),'123456',CONCAT(dept,'学生3'),'student',dept,CONCAT(dept,'s3@test.com'));
+
+SET s3 = LAST_INSERT_ID();
+
+-- 老师绑定学生
+INSERT INTO teacher_students(teacher_id,student_id) VALUES
+(teacher1,s1),(teacher1,s2),(teacher1,s3),
+(teacher2,s1),(teacher2,s2),(teacher2,s3);
+
+-- 每个老师2个作业
+SET i = 1;
+WHILE i <= 2 DO
+
+INSERT INTO homeworks(title,description,department,creator_id,deadline,allow_late)
+VALUES(CONCAT(dept,'作业',i),'完成课程相关作业',dept,teacher1,DATE_ADD(NOW(),INTERVAL 7 DAY),1);
+
+SET hw = LAST_INSERT_ID();
+
+-- 3个提交
+INSERT INTO submissions(homework_id,student_id,content,is_late,score,is_excellent,reviewer_id,reviewed_at)
+VALUES
+(hw,s1,CONCAT('github.com/',dept,'/homework'),0,95,1,teacher1,NOW()),
+(hw,s2,CONCAT('github.com/',dept,'/homework'),0,88,0,teacher1,NOW()),
+(hw,s3,CONCAT('github.com/',dept,'/homework'),0,82,0,teacher1,NOW());
+
+SET i = i + 1;
+
+END WHILE;
+
+SET i = 1;
+WHILE i <= 2 DO
+
+INSERT INTO homeworks(title,description,department,creator_id,deadline,allow_late)
+VALUES(CONCAT(dept,'作业',i+2),'完成课程相关作业',dept,teacher2,DATE_ADD(NOW(),INTERVAL 7 DAY),1);
+
+SET hw = LAST_INSERT_ID();
+
+INSERT INTO submissions(homework_id,student_id,content,is_late,score,is_excellent,reviewer_id,reviewed_at)
+VALUES
+(hw,s1,CONCAT('github.com/',dept,'/homework'),0,93,1,teacher2,NOW()),
+(hw,s2,CONCAT('github.com/',dept,'/homework'),0,87,0,teacher2,NOW()),
+(hw,s3,CONCAT('github.com/',dept,'/homework'),0,80,0,teacher2,NOW());
+
+SET i = i + 1;
+
+END WHILE;
+
+END LOOP;
+
+CLOSE dept_cursor;
+
+END$$
+
+DELIMITER ;
+
+-- =================================
+-- 执行初始化
+-- =================================
+
+CALL init_homework_data();
