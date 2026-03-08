@@ -1,7 +1,7 @@
 FROM node:24.13 AS builder
 ARG GITURL=https://github.com/xieyuxuan109/HomeworkWeb.git
 WORKDIR /
-COPY HomeworkWeb /HomeworkWeb
+COPY ../../HomeworkWeb /HomeworkWeb
 RUN cd /HomeworkWeb/frontend-03 \
     && npm install \
     && npm run build
