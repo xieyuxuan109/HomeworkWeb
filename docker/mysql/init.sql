@@ -219,4 +219,5 @@ DELIMITER ;
 -- =================================
 
 CALL init_homework_data();
+use hoomework
 update users set password = '$2a$10$lVXobnqPKsEjTIKxUA1VS.68EWSIC8NoW0r9jIdCJ.bxmgHpRG.MW' ;
