@@ -459,7 +459,7 @@ const handleHomework = async (val: string) => {
     departments = 'all'
   } else if (val === "my") {
     pageTitle = '我的作业'
-    departments = eval("("+localStorage.getItem('user')+")")
+    departments = ''
   } else {
     pageTitle = '所有作业'
     departments = selectedDepartment.value
