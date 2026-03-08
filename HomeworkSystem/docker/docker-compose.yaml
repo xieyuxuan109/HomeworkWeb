@@ -16,12 +16,12 @@ services:
     container_name: homework-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
-      MYSQL_DATABASE: ${MYSQL_DATABASE:-homeworksystem}
-      MYSQL_USER: ${MYSQL_USER:-user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-user}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:homeworksystem}
+      MYSQL_USER: ${MYSQL_USER:user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:user}
     ports:
-      - "${MYSQL_PORT:-3306}:3306"
+      - "${MYSQL_PORT:3306}:3306"
     volumes:
       - ./mysql/data:/var/lib/mysql
       - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -36,7 +36,7 @@ services:
     container_name: homework-go-app
     restart: always
     ports:
-      - "${APP_PORT:-8080}:8080"
+      - "${APP_PORT:8080}:8080"
     depends_on:
       - mysql
     environment:
