@@ -1,7 +1,7 @@
 # 第一阶段：构建阶段
 FROM golang:1.25 AS builder
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOPROXY=https://goproxy.cn,direct
-COPY HomeworkWeb /go/HomeworkWeb
+COPY ./HomeworkWeb /go/HomeworkWeb
 WORKDIR /go
 RUN cd ./HomeworkWeb/HomeworkSystem/cmd/ \
     && go build -o homework main.go 
