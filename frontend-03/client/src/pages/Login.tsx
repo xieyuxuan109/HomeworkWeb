@@ -108,7 +108,7 @@ export default function Login() {
               作业管理系统
             </h1>
             <p className="text-gray-500 text-sm">
-              红岩网络工作室
+              谢宇轩
             </p>
           </div>
 
