@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/xieyuxuan109/homeworksystem/configs"
 	"github.com/xieyuxuan109/homeworksystem/dao"
 	"github.com/xieyuxuan109/homeworksystem/model"
 	"github.com/xieyuxuan109/homeworksystem/pkg"
@@ -41,9 +40,8 @@ func GetHomeworks(c *gin.Context) {
 	if role.(string) == "admin" {
 		teacherIDs = append(teacherIDs, userid)
 	} else {
-		configs.DB.Model(&model.TeacherStudent{}).
-			Where("student_id = ?", user_id).
-			Pluck("teacher_id", &teacherIDs)
+		dep, _ := c.Get("department")
+		department = dep.(string)
 	}
 	pageStr := c.DefaultQuery("page", "1")
 	pageSizeStr := c.DefaultQuery("page_size", "10")
