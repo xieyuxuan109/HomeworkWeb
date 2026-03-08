@@ -1,4 +1,3 @@
-# 第一阶段：构建阶段
 FROM node:24.13 AS builder
 ARG GITURL=https://github.com/xieyuxuan109/HomeworkWeb.git
 WORKDIR /
