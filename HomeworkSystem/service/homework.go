@@ -37,8 +37,6 @@ func GetHomework(id []uint, department string, offset int, page int, pageSize in
 	switch department {
 	case "all":
 		query = common.Preload("Creator").Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&homeworks)
-	case "":
-		query = common.Where("creator_id in (?)", id).Preload("Creator").Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&homeworks)
 	default:
 		query = common.Where("department = ?", department).Preload("Creator").Order("created_at DESC").Offset(offset).Limit(pageSize).Find(&homeworks)
 	}
